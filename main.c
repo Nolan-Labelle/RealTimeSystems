@@ -5,6 +5,16 @@
 #include "stm32f4xx_exti.h"             // Keil::Device:StdPeriph Drivers:EXTI
 #include "stm32f4xx_syscfg.h"           // Keil::Device:StdPeriph Drivers:SYSCFG
 
+
+
+
+static int led = 12;
+static int seconds = 0;
+static int tenths = 1;
+static int brewing = 0;//0 = not brewing, 1 = brewing.
+
+static int mode = 1; //0 = selector mode, 1 = brewing mode.
+
 void initTimers()
 {
 	TIM_TimeBaseInitTypeDef timer_InitStructure;
@@ -48,10 +58,30 @@ void TIM2_IRQHandler () //This is the timer interrupt handler!
 	if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
 	{
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-		GPIO_ToggleBits(GPIOD, GPIO_Pin_12); //what about a straight on and off?
-		GPIO_ToggleBits(GPIOD, GPIO_Pin_13);
-		GPIO_ToggleBits(GPIOD, GPIO_Pin_14);
-		GPIO_ToggleBits(GPIOD, GPIO_Pin_15);
+		tenths++;
+		if(tenths > 10 && seconds > 0){
+			seconds--;
+			tenths = 1;
+		}
+		if(mode == 1 && brewing){
+			if(tenths == 3){
+				if(led == 12){
+					GPIO_SetBits(GPIOD, GPIO_Pin_12);
+				} else if(led == 13){
+					GPIO_SetBits(GPIOD, GPIO_Pin_13);
+				} else if(led == 14){
+					GPIO_SetBits(GPIOD, GPIO_Pin_14);
+				} else if(led == 15){
+					GPIO_SetBits(GPIOD, GPIO_Pin_15);
+				}
+			} else {
+				GPIO_ResetBits(GPIOD, GPIO_Pin_12);
+				GPIO_ResetBits(GPIOD, GPIO_Pin_13);
+				GPIO_ResetBits(GPIOD, GPIO_Pin_14);
+				GPIO_ResetBits(GPIOD, GPIO_Pin_15);
+			}
+		}
+		
 	}
 }
 
@@ -99,7 +129,14 @@ void EXTI0_IRQHandler()
 	// Checks whether the interrupt from EXTI0 or not
 	if (EXTI_GetITStatus(EXTI_Line0) != RESET)
 	{
-		GPIO_ToggleBits(GPIOD, GPIO_Pin_12);
+		if(led >= 15){
+			led = 12;
+		} else {
+			led ++;
+		}
+		if(mode == 1){
+			brewing = 0;
+		}
 		// Clears the EXTI line pending bit
 		EXTI_ClearITPendingBit(EXTI_Line0);
 	}
@@ -115,8 +152,39 @@ int main ()
 	InitEXTI();
 	EnableEXTIInterrupt();
 	
+	led = 12;
+	GPIO_SetBits(GPIOD, GPIO_Pin_12);
 	while (1)
 	{
-		__asm("nop"); //Just spin.
+		if(mode == 0){
+			if(led == 12){
+				GPIO_ResetBits(GPIOD, GPIO_Pin_15);
+				GPIO_SetBits(GPIOD, GPIO_Pin_12);
+			} else if(led == 13){
+				GPIO_ResetBits(GPIOD, GPIO_Pin_12);
+				GPIO_SetBits(GPIOD, GPIO_Pin_13);
+			} else if(led == 14){
+				GPIO_ResetBits(GPIOD, GPIO_Pin_13);
+				GPIO_SetBits(GPIOD, GPIO_Pin_14);
+			} else if(led == 15){
+				GPIO_ResetBits(GPIOD, GPIO_Pin_14);
+				GPIO_SetBits(GPIOD, GPIO_Pin_15);
+			}
+		} else if (mode == 1){
+			if(!brewing){
+				tenths = 1;
+				if(led == 12){
+					seconds = 5;
+				} else if(led == 13){
+					seconds = 10;
+				} else if(led == 14){
+					seconds = 15;
+				} else if(led == 15){
+					seconds = 20;
+				}
+				brewing = 1;
+			}
+		}
+		//__asm("nop"); //Just spin.
 	}
 }
