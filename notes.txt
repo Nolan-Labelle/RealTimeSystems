@@ -44,4 +44,5 @@ system_stm32f4xx.c, line 254, defining PLL_M, variable should be 8, not 25.
 
 TODO:
 If seconds gets to zero, we don't exit brewing mode.
-Currently blinks for a second, once every (period) seconds.
+First round of blinking results in six blinks, not five like we intended.
+	Occurs only the first time.

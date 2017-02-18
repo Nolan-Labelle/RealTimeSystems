@@ -5,15 +5,16 @@
 #include "stm32f4xx_exti.h"             // Keil::Device:StdPeriph Drivers:EXTI
 #include "stm32f4xx_syscfg.h"           // Keil::Device:StdPeriph Drivers:SYSCFG
 
-
-
+#define SELECTOR 0
+#define BREWING 1
+#define TRUE 1
+#define FALSE 0
 
 static int led = 12;
 static int seconds = 0;
 static int tenths = 1;
-static int brewing = 0;//0 = not brewing, 1 = brewing.
-
-static int mode = 1; //0 = selector mode, 1 = brewing mode.
+static int timerRunning = FALSE;
+static int mode = BREWING;
 
 void initTimers()
 {
@@ -21,7 +22,7 @@ void initTimers()
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
 	timer_InitStructure.TIM_Prescaler = 83; //Timer now scaled to 1MHz
-	timer_InitStructure.TIM_Period = 1000000; //Cycle how many MHz
+	timer_InitStructure.TIM_Period = 100000; //Cycle how many MHz
 	timer_InitStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	timer_InitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	timer_InitStructure.TIM_RepetitionCounter = 0;
@@ -46,43 +47,12 @@ void initLEDs()
 void enableTimerInterrupt()
 {
 	NVIC_InitTypeDef nvicStructure;
+	
 	nvicStructure.NVIC_IRQChannel = TIM2_IRQn;
 	nvicStructure.NVIC_IRQChannelPreemptionPriority = 0;
 	nvicStructure.NVIC_IRQChannelSubPriority = 1;
 	nvicStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&nvicStructure);
-}
-
-void TIM2_IRQHandler () //This is the timer interrupt handler!
-{
-	if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
-	{
-		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-		tenths++;
-		if(tenths > 10 && seconds > 0){
-			seconds--;
-			tenths = 1;
-		}
-		if(mode == 1 && brewing){
-			if(tenths == 3){
-				if(led == 12){
-					GPIO_SetBits(GPIOD, GPIO_Pin_12);
-				} else if(led == 13){
-					GPIO_SetBits(GPIOD, GPIO_Pin_13);
-				} else if(led == 14){
-					GPIO_SetBits(GPIOD, GPIO_Pin_14);
-				} else if(led == 15){
-					GPIO_SetBits(GPIOD, GPIO_Pin_15);
-				}
-			} else {
-				GPIO_ResetBits(GPIOD, GPIO_Pin_12);
-				GPIO_ResetBits(GPIOD, GPIO_Pin_13);
-				GPIO_ResetBits(GPIOD, GPIO_Pin_14);
-				GPIO_ResetBits(GPIOD, GPIO_Pin_15);
-			}
-		}
-		
-	}
 }
 
 void InitButton() // initialize user button 
@@ -124,22 +94,74 @@ void EnableEXTIInterrupt()
 	NVIC_Init(&NVIC_InitStructure);
 }
 
+void TIM2_IRQHandler () //This is the timer interrupt handler!
+{
+	if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
+	{
+		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+		tenths++;
+		
+		if (tenths > 10 && seconds > 0)
+		{
+			seconds--;
+			tenths = 1;
+		}
+		
+		if (mode == BREWING && timerRunning)
+		{
+			if (tenths == 1)
+			{
+				switch (led)
+				{
+					case 12:
+						GPIO_SetBits(GPIOD, GPIO_Pin_12);
+						break;
+					case 13:
+						GPIO_SetBits(GPIOD, GPIO_Pin_13);
+						break;
+					case 14:
+						GPIO_SetBits(GPIOD, GPIO_Pin_14);
+						break;
+					case 15:
+						GPIO_SetBits(GPIOD, GPIO_Pin_15);
+						break;
+				}
+			} 
+			else 
+			{
+				GPIO_ResetBits(GPIOD, GPIO_Pin_12);
+				GPIO_ResetBits(GPIOD, GPIO_Pin_13);
+				GPIO_ResetBits(GPIOD, GPIO_Pin_14);
+				GPIO_ResetBits(GPIOD, GPIO_Pin_15);
+			}
+		}
+		
+	}
+}
+
 void EXTI0_IRQHandler()
 {
 	// Checks whether the interrupt from EXTI0 or not
 	if (EXTI_GetITStatus(EXTI_Line0) != RESET)
 	{
-		if(led >= 15){
-			led = 12;
-		} else {
-			led ++;
+		if (mode == SELECTOR)
+		{
+			led++;
+			if (led > 15)
+			{
+				led = 12;
+			}
 		}
-		if(mode == 1){
-			brewing = 0;
+		else if (mode == BREWING)
+		{
+			timerRunning = TRUE;
 		}
-		// Clears the EXTI line pending bit
-		EXTI_ClearITPendingBit(EXTI_Line0);
+		//just to test:
+		seconds = 10;
 	}
+	
+	// Clears the EXTI line pending bit
+	EXTI_ClearITPendingBit(EXTI_Line0);
 }
 
 int main ()
@@ -156,35 +178,51 @@ int main ()
 	GPIO_SetBits(GPIOD, GPIO_Pin_12);
 	while (1)
 	{
-		if(mode == 0){
-			if(led == 12){
-				GPIO_ResetBits(GPIOD, GPIO_Pin_15);
-				GPIO_SetBits(GPIOD, GPIO_Pin_12);
-			} else if(led == 13){
-				GPIO_ResetBits(GPIOD, GPIO_Pin_12);
-				GPIO_SetBits(GPIOD, GPIO_Pin_13);
-			} else if(led == 14){
-				GPIO_ResetBits(GPIOD, GPIO_Pin_13);
-				GPIO_SetBits(GPIOD, GPIO_Pin_14);
-			} else if(led == 15){
-				GPIO_ResetBits(GPIOD, GPIO_Pin_14);
-				GPIO_SetBits(GPIOD, GPIO_Pin_15);
+		if (mode == SELECTOR)
+		{
+			switch(led)
+			{
+				case 12:
+					GPIO_ResetBits(GPIOD, GPIO_Pin_15);
+					GPIO_SetBits(GPIOD, GPIO_Pin_12);
+					break;
+				case 13:
+					GPIO_ResetBits(GPIOD, GPIO_Pin_12);
+					GPIO_SetBits(GPIOD, GPIO_Pin_13);
+					break;
+				case 14:
+					GPIO_ResetBits(GPIOD, GPIO_Pin_13);
+					GPIO_SetBits(GPIOD, GPIO_Pin_14);
+					break;
+				case 15:
+					GPIO_ResetBits(GPIOD, GPIO_Pin_14);
+					GPIO_SetBits(GPIOD, GPIO_Pin_15);
+					break;
 			}
-		} else if (mode == 1){
-			if(!brewing){
+		} 
+		else if (mode == BREWING)
+		{
+			if (!timerRunning)
+			{
 				tenths = 1;
-				if(led == 12){
-					seconds = 5;
-				} else if(led == 13){
-					seconds = 10;
-				} else if(led == 14){
-					seconds = 15;
-				} else if(led == 15){
-					seconds = 20;
+				switch(led)
+				{
+					case 12:
+						seconds = 5;
+						break;
+					case 13:
+						seconds = 10;
+						break;
+					case 14:
+						seconds = 15;
+						break;
+					case 15:
+						seconds = 20;
+						break;
 				}
-				brewing = 1;
+				timerRunning = TRUE;
 			}
 		}
-		//__asm("nop"); //Just spin.
 	}
+	//We never get here.
 }
