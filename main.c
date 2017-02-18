@@ -4,6 +4,10 @@
 #include "stm32f4xx_tim.h"              // Keil::Device:StdPeriph Drivers:TIM
 #include "stm32f4xx_exti.h"             // Keil::Device:StdPeriph Drivers:EXTI
 #include "stm32f4xx_syscfg.h"           // Keil::Device:StdPeriph Drivers:SYSCFG
+#include "stm32f4xx_spi.h"
+
+#include "main.h"
+#include "codec.h"
 
 #define SELECTOR 0
 #define BREWING 1
@@ -22,6 +26,8 @@ static int timerRunning = FALSE;
 static int mode = SELECTOR;
 static int presses = 0;
 static int buttonTimer = 0;
+
+fir_8 filt;
 
 
 void initTimers()
@@ -56,7 +62,57 @@ void initLEDs()
 	GPIO_Initstructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_Init(GPIOD, &GPIO_Initstructure);
 }
+void initSound()
+{
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 
+	codec_init();
+	codec_ctrl_init();
+
+	I2S_Cmd(CODEC_I2S, ENABLE);
+
+	initFilter(&filt);
+}
+float updateFilter(fir_8* filt, float val)
+{
+	uint16_t valIndex;
+	uint16_t paramIndex;
+	float outval = 0.0;
+
+	valIndex = filt->currIndex;
+	filt->tabs[valIndex] = val;
+
+	for (paramIndex=0; paramIndex<8; paramIndex++)
+	{
+		outval += (filt->params[paramIndex]) * (filt->tabs[(valIndex+paramIndex)&0x07]);
+	}
+
+	valIndex++;
+	valIndex &= 0x07;
+
+	filt->currIndex = valIndex;
+
+	return outval;
+}
+
+void initFilter(fir_8* theFilter)
+{
+	uint8_t i;
+
+	theFilter->currIndex = 0;
+
+	for (i=0; i<8; i++)
+		theFilter->tabs[i] = 0.0;
+
+	theFilter->params[0] = 0.01;
+	theFilter->params[1] = 0.05;
+	theFilter->params[2] = 0.12;
+	theFilter->params[3] = 0.32;
+	theFilter->params[4] = 0.32;
+	theFilter->params[5] = 0.12;
+	theFilter->params[6] = 0.05;
+	theFilter->params[7] = 0.01;
+}
 void enableTIM2Interrupt()
 {
 	NVIC_InitTypeDef nvicStructure;
@@ -117,7 +173,37 @@ void EnableEXTIInterrupt()
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 }
+void beep()
+{
+	if (SPI_I2S_GetFlagStatus(CODEC_I2S, SPI_I2S_FLAG_TXE))
+ 	{
+ 		int counter = 8300000;
+		while(counter--)
+    {
+    	if (SPI_I2S_GetFlagStatus(CODEC_I2S, SPI_I2S_FLAG_TXE))
+    	{
+    		SPI_I2S_SendData(CODEC_I2S, sample);
 
+    		//only update on every second sample to insure that L & R ch. have the same sample value
+    		if (sampleCounter & 0x00000001)
+    		{
+    			sawWave += NOTEFREQUENCY;
+    			if (sawWave > 1.0)
+    				sawWave -= 2.0;
+
+    			filteredSaw = updateFilter(&filt, sawWave);
+    			sample = (int16_t)(NOTEAMPLITUDE*filteredSaw);
+    		}
+    		sampleCounter++;
+    	}
+
+    	else if (sampleCounter == 96000)
+    	{
+    		sampleCounter = 0;
+    	}
+		}
+  }
+}
 void TIM2_IRQHandler () //This is the timer interrupt handler!
 {
 	if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
@@ -130,10 +216,11 @@ void TIM2_IRQHandler () //This is the timer interrupt handler!
 			seconds--;
 			tenths = 1;
 		}
-		if (seconds == 0)
+		if (mode == BREWING && seconds == 0)
 		{
 			timerRunning = FALSE;
 			mode = SELECTOR;
+			beep();
 			//add code for play noise here, and we're golden
 		}
 		
@@ -244,6 +331,7 @@ int main ()
 {
 	initLEDs();
 	initTimers();
+	initSound();
 	enableTIM2Interrupt();
 	enableTIM5Interrupt();
 	
