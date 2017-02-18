@@ -1,0 +1,47 @@
+Facts:
+Clock speed is 168MHz.
+LED's are connected to pins PD12 to PD15.
+TIM2 has output channels 1 to 4.
+TIM2_IRQHandler() is the timer interrupt handler.
+
+Find these out:
+Other timers, if I need them.
+Detect double clicks.
+
+The plan:
+Some globals to keep track of machine state.
+main()
+{
+	set g_mode to "selector"
+	set g_LED to PD12
+	turn on g_LED
+	while (true)
+		//do things based off of globals
+}
+button_ISR()
+{
+	if single_click
+		if g_mode is "selector"
+			increment g_LED
+		if g_mode is "brewing"
+			reset g_countdown
+	if double_click
+		if g_mode is "selector"
+			set g_mode to "brewing"
+		if g_mode is brewing
+			set g_countdown to -1
+			set g_mode to selector
+}
+timer_ISR()
+{
+	decrement g_countdown
+	blink corresponding g_LED
+}
+
+Enable C99 to allow inline int declarations in for loops and stuff like that?
+1Hz timer = 83 prescalar, period of 1M ('cuz 1MHz).
+system_stm32f4xx.c, line 254, defining PLL_M, variable should be 8, not 25.
+
+TODO:
+If seconds gets to zero, we don't exit brewing mode.
+Currently blinks for a second, once every (period) seconds.
