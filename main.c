@@ -178,7 +178,7 @@ void beep()
 	if (SPI_I2S_GetFlagStatus(CODEC_I2S, SPI_I2S_FLAG_TXE))
  	{
  		int counter = 8300000;
-		while(counter--)
+		while(counter--) //code gotten from the sample sound program that was provided to save time upon creating the sine wave
     {
     	if (SPI_I2S_GetFlagStatus(CODEC_I2S, SPI_I2S_FLAG_TXE))
     	{
@@ -317,10 +317,13 @@ void EXTI0_IRQHandler()
 	// Checks whether the interrupt from EXTI0 or not
 	if (EXTI_GetITStatus(EXTI_Line0) != RESET)
 	{
-		if(presses <= 0){
-			buttonTimer = 10;
+		if(buttonTimer < 4) //to remove the bounce of pressing the button (hardware issue)
+		{
+			if(presses <= 0){
+				buttonTimer = 5;
+			}
+			presses++;
 		}
-		presses++;
 	}
 	
 	// Clears the EXTI line pending bit
