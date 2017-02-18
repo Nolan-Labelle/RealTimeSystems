@@ -10,16 +10,25 @@
 #define TRUE 1
 #define FALSE 0
 
+#define COFFEE_TIME 5
+#define ESPRESSO_TIME 10
+#define LATTE_TIME 15
+#define MOCHA_TIME 20
+
 static int led = 12;
 static int seconds = 0;
 static int tenths = 1;
 static int timerRunning = FALSE;
-static int mode = BREWING;
+static int mode = SELECTOR;
+static int presses = 0;
+static int buttonTimer = 0;
+
 
 void initTimers()
 {
 	TIM_TimeBaseInitTypeDef timer_InitStructure;
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
 
 	timer_InitStructure.TIM_Prescaler = 83; //Timer now scaled to 1MHz
 	timer_InitStructure.TIM_Period = 100000; //Cycle how many MHz
@@ -29,6 +38,10 @@ void initTimers()
 	TIM_TimeBaseInit(TIM2, &timer_InitStructure);
 	TIM_Cmd(TIM2, ENABLE);
 	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE); //Enables interrupts?
+	
+	TIM_TimeBaseInit(TIM5, &timer_InitStructure);
+	TIM_Cmd(TIM5, ENABLE);
+	TIM_ITConfig(TIM5, TIM_IT_Update, ENABLE);
 }
 
 void initLEDs()
@@ -44,12 +57,23 @@ void initLEDs()
 	GPIO_Init(GPIOD, &GPIO_Initstructure);
 }
 
-void enableTimerInterrupt()
+void enableTIM2Interrupt()
 {
 	NVIC_InitTypeDef nvicStructure;
 	
 	nvicStructure.NVIC_IRQChannel = TIM2_IRQn;
 	nvicStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	nvicStructure.NVIC_IRQChannelSubPriority = 1;
+	nvicStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&nvicStructure);
+}
+
+void enableTIM5Interrupt()
+{
+	NVIC_InitTypeDef nvicStructure;
+	
+	nvicStructure.NVIC_IRQChannel = TIM5_IRQn;
+	nvicStructure.NVIC_IRQChannelPreemptionPriority = 1;
 	nvicStructure.NVIC_IRQChannelSubPriority = 1;
 	nvicStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&nvicStructure);
@@ -106,6 +130,12 @@ void TIM2_IRQHandler () //This is the timer interrupt handler!
 			seconds--;
 			tenths = 1;
 		}
+		if (seconds == 0)
+		{
+			timerRunning = FALSE;
+			mode = SELECTOR;
+			//add code for play noise here, and we're golden
+		}
 		
 		if (mode == BREWING && timerRunning)
 		{
@@ -139,25 +169,71 @@ void TIM2_IRQHandler () //This is the timer interrupt handler!
 	}
 }
 
+void TIM5_IRQHandler () //This is the timer interrupt handler!
+{
+	if (TIM_GetITStatus(TIM5, TIM_IT_Update) != RESET)
+	{
+		TIM_ClearITPendingBit(TIM5, TIM_IT_Update);
+		if(buttonTimer > 0)
+		{
+			buttonTimer--;
+		}
+		if(buttonTimer == 0)
+		{
+			if(presses == 1)
+			{
+				if (mode == SELECTOR)
+				{
+					led++;
+					if (led > 15)
+					{
+						led = 12;
+					}
+				}
+				else if (mode == BREWING)
+				{
+					switch(led)
+					{
+						case 12:
+							seconds = COFFEE_TIME;
+							break;
+						case 13:
+							seconds = ESPRESSO_TIME;
+							break;
+						case 14:
+							seconds = LATTE_TIME;
+							break;
+						case 15:
+							seconds = MOCHA_TIME;
+							break;
+					}
+				}
+			}
+			else if(presses > 1)
+			{
+				if(mode == BREWING)
+				{
+					mode = SELECTOR;
+				}
+				else if(mode == SELECTOR)
+				{
+					mode = BREWING;
+				}
+			}
+			presses = 0;
+		}
+	}
+}
+
 void EXTI0_IRQHandler()
 {
 	// Checks whether the interrupt from EXTI0 or not
 	if (EXTI_GetITStatus(EXTI_Line0) != RESET)
 	{
-		if (mode == SELECTOR)
-		{
-			led++;
-			if (led > 15)
-			{
-				led = 12;
-			}
+		if(presses <= 0){
+			buttonTimer = 10;
 		}
-		else if (mode == BREWING)
-		{
-			timerRunning = TRUE;
-		}
-		//just to test:
-		seconds = 10;
+		presses++;
 	}
 	
 	// Clears the EXTI line pending bit
@@ -168,7 +244,8 @@ int main ()
 {
 	initLEDs();
 	initTimers();
-	enableTimerInterrupt();
+	enableTIM2Interrupt();
+	enableTIM5Interrupt();
 	
 	InitButton();
 	InitEXTI();
@@ -204,20 +281,20 @@ int main ()
 		{
 			if (!timerRunning)
 			{
-				tenths = 1;
+				tenths = -1;
 				switch(led)
 				{
 					case 12:
-						seconds = 5;
+						seconds = COFFEE_TIME;
 						break;
 					case 13:
-						seconds = 10;
+						seconds = ESPRESSO_TIME;
 						break;
 					case 14:
-						seconds = 15;
+						seconds = LATTE_TIME;
 						break;
 					case 15:
-						seconds = 20;
+						seconds = MOCHA_TIME;
 						break;
 				}
 				timerRunning = TRUE;
