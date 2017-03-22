@@ -5,11 +5,28 @@
 #include "queue.h"
 #include "task.h"
 #include "croutine.h"
+#include <stdlib.h>
 
 #define STACK_SIZE_MIN	128	/* usStackDepth	- the stack size DEFINED IN WORDS.*/
 
-void vLedBlinkBlue(void *pvParameters)
+typedef struct
 {
+	int brewTime;
+	QueueHandle_t queuePointer;
+} QueuePack;
+
+typedef struct
+{
+	QueueHandle_t blue;
+	QueueHandle_t red;
+	QueueHandle_t green;
+	QueueHandle_t orange;
+} SelectorPack;
+
+void vBlueCoffee(void *pvParameters)
+{
+	QueuePack* bluePack = (QueuePack*)pvParameters;
+	
 	for(;;)
 	{
 		STM_EVAL_LEDToggle(LED_BLUE);
@@ -17,8 +34,10 @@ void vLedBlinkBlue(void *pvParameters)
 	}
 }
 
-void vLedBlinkRed(void *pvParameters)
+void vRedCoffee(void *pvParameters)
 {
+	QueuePack* redPack = (QueuePack*)pvParameters;
+	
 	for(;;)
 	{
 		STM_EVAL_LEDToggle(LED_RED);
@@ -26,8 +45,10 @@ void vLedBlinkRed(void *pvParameters)
 	}
 }
 
-void vLedBlinkGreen(void *pvParameters)
+void vGreenCoffee(void *pvParameters)
 {
+	QueuePack* greenPack = (QueuePack*)pvParameters;
+	
 	for(;;)
 	{
 		STM_EVAL_LEDToggle(LED_GREEN);
@@ -35,8 +56,10 @@ void vLedBlinkGreen(void *pvParameters)
 	}
 }
 
-void vLedBlinkOrange(void *pvParameters)
+void vOrangeCoffee(void *pvParameters)
 {
+	QueuePack* orangePack = (QueuePack*)pvParameters;
+	
 	for(;;)
 	{
 		STM_EVAL_LEDToggle(LED_ORANGE);
@@ -44,14 +67,25 @@ void vLedBlinkOrange(void *pvParameters)
 	}
 }
 
+void vSelector(void *pvParameters)
+{
+	SelectorPack* selectorPack = (SelectorPack*)pvParameters;
+	
+	for(;;)
+	{
+		//lol i dunno.
+	}
+}
+
 int main(void)
 {
-	/*!< At this stage the microcontroller clock setting is already configured,
-	   this is done through SystemInit() function which is called from startup
-	   file (startup_stm32f4xx.s) before to branch to application main.
-	   To reconfigure the default setting of SystemInit() function, refer to
-	   system_stm32f4xx.c file
-	 */
+	QueueHandle_t xBlueQueue, xRedQueue, xGreenQueue, xOrangeQueue;
+	QueuePack* bluePack = malloc(sizeof(QueuePack));
+	QueuePack* redPack = malloc(sizeof(QueuePack));
+	QueuePack* greenPack = malloc(sizeof(QueuePack));
+	QueuePack* orangePack = malloc(sizeof(QueuePack));
+	SelectorPack* selectorPack = malloc(sizeof(SelectorPack));
+	
 	NVIC_PriorityGroupConfig( NVIC_PriorityGroup_4 ); //Enable preemption. Must happen before scheduler.
 	
 	STM_EVAL_LEDInit(LED_BLUE);
@@ -59,10 +93,16 @@ int main(void)
 	STM_EVAL_LEDInit(LED_ORANGE);
 	STM_EVAL_LEDInit(LED_RED);
 	
-	xTaskCreate( vLedBlinkBlue, (const char*)"Led Blink Task Blue", STACK_SIZE_MIN, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( vLedBlinkRed, (const char*)"Led Blink Task Red", STACK_SIZE_MIN, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( vLedBlinkGreen, (const char*)"Led Blink Task Green", STACK_SIZE_MIN, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( vLedBlinkOrange, (const char*)"Led Blink Task Orange", STACK_SIZE_MIN, NULL, tskIDLE_PRIORITY, NULL );
+	xBlueQueue = 	xQueueCreate(10, sizeof(int));
+	xRedQueue = 	xQueueCreate(10, sizeof(int));
+	xGreenQueue = 	xQueueCreate(10, sizeof(int));
+	xOrangeQueue = 	xQueueCreate(10, sizeof(int));
+	
+	xTaskCreate( vBlueCoffee, 	"Blue coffee", 		STACK_SIZE_MIN, (void*)bluePack, 1, NULL );
+	xTaskCreate( vRedCoffee, 	"Red coffee", 		STACK_SIZE_MIN, (void*)redPack, 1, NULL );
+	xTaskCreate( vGreenCoffee, 	"Green coffee", 	STACK_SIZE_MIN, (void*)greenPack, 1, NULL );
+	xTaskCreate( vOrangeCoffee, "Orange coffee", 	STACK_SIZE_MIN, (void*)orangePack, 1, NULL );
+	xTaskCreate( vSelector, 	"Selector", 		STACK_SIZE_MIN, (void*)selectorPack, 2, NULL );
 	
 	vTaskStartScheduler();
 }
