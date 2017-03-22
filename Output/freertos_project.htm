@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Output\freertos_project.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Output\freertos_project.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060422: Last Updated: Mon Mar 20 16:11:24 2017
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060422: Last Updated: Wed Mar 22 15:45:09 2017
 <BR><P>
 <H3>Maximum Stack Usage =        232 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -121,10 +121,10 @@ Function Pointers
  <LI><a href="#[60]">prvIdleTask</a> from tasks.o(.text) referenced from tasks.o(.text)
  <LI><a href="#[62]">prvTaskExitError</a> from port.o(.text) referenced from port.o(.text)
  <LI><a href="#[61]">prvTimerTask</a> from timers.o(.text) referenced from timers.o(.text)
- <LI><a href="#[7c]">vLedBlinkBlue</a> from main.o(.text) referenced from main.o(.text)
- <LI><a href="#[7a]">vLedBlinkGreen</a> from main.o(.text) referenced from main.o(.text)
- <LI><a href="#[77]">vLedBlinkOrange</a> from main.o(.text) referenced from main.o(.text)
- <LI><a href="#[7b]">vLedBlinkRed</a> from main.o(.text) referenced from main.o(.text)
+ <LI><a href="#[77]">vLedBlinkBlue</a> from main.o(.text) referenced from main.o(.text)
+ <LI><a href="#[7b]">vLedBlinkGreen</a> from main.o(.text) referenced from main.o(.text)
+ <LI><a href="#[7c]">vLedBlinkOrange</a> from main.o(.text) referenced from main.o(.text)
+ <LI><a href="#[7a]">vLedBlinkRed</a> from main.o(.text) referenced from main.o(.text)
 </UL>
 <P>
 <H3>
@@ -618,23 +618,15 @@ Global Symbols
 </UL>
 <P><STRONG><a name="[123]"></a>SystemCoreClockUpdate</STRONG> (Thumb, 174 bytes, Stack size 16 bytes, system_stm32f4xx.o(.text), UNUSED)
 
-<P><STRONG><a name="[77]"></a>vLedBlinkOrange</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, main.o(.text))
-<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = vLedBlinkOrange &rArr; vTaskDelay &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
+<P><STRONG><a name="[77]"></a>vLedBlinkBlue</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, main.o(.text))
+<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = vLedBlinkBlue &rArr; vTaskDelay &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskDelay
 <LI><a href="#[78]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;STM_EVAL_LEDToggle
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.text)
 </UL>
-<P><STRONG><a name="[7a]"></a>vLedBlinkGreen</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, main.o(.text))
-<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = vLedBlinkGreen &rArr; vTaskDelay &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
-</UL>
-<BR>[Calls]<UL><LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskDelay
-<LI><a href="#[78]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;STM_EVAL_LEDToggle
-</UL>
-<BR>[Address Reference Count : 1]<UL><LI> main.o(.text)
-</UL>
-<P><STRONG><a name="[7b]"></a>vLedBlinkRed</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, main.o(.text))
+<P><STRONG><a name="[7a]"></a>vLedBlinkRed</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = vLedBlinkRed &rArr; vTaskDelay &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskDelay
@@ -642,8 +634,16 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.text)
 </UL>
-<P><STRONG><a name="[7c]"></a>vLedBlinkBlue</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, main.o(.text))
-<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = vLedBlinkBlue &rArr; vTaskDelay &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
+<P><STRONG><a name="[7b]"></a>vLedBlinkGreen</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, main.o(.text))
+<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = vLedBlinkGreen &rArr; vTaskDelay &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
+</UL>
+<BR>[Calls]<UL><LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskDelay
+<LI><a href="#[78]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;STM_EVAL_LEDToggle
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> main.o(.text)
+</UL>
+<P><STRONG><a name="[7c]"></a>vLedBlinkOrange</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, main.o(.text))
+<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = vLedBlinkOrange &rArr; vTaskDelay &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskDelay
 <LI><a href="#[78]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;STM_EVAL_LEDToggle
@@ -676,10 +676,10 @@ Global Symbols
 <P><STRONG><a name="[125]"></a>STM_EVAL_LEDOff</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, discoveryf4utils.o(.text), UNUSED)
 
 <P><STRONG><a name="[78]"></a>STM_EVAL_LEDToggle</STRONG> (Thumb, 26 bytes, Stack size 0 bytes, discoveryf4utils.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkBlue
-<LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkRed
-<LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkGreen
-<LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkOrange
+<BR><BR>[Called By]<UL><LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkOrange
+<LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkGreen
+<LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkRed
+<LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkBlue
 </UL>
 
 <P><STRONG><a name="[83]"></a>STM_EVAL_PBInit</STRONG> (Thumb, 140 bytes, Stack size 32 bytes, discoveryf4utils.o(.text), UNUSED)
@@ -1056,10 +1056,10 @@ Global Symbols
 <LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uxListRemove
 <LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ulPortSetInterruptMask
 </UL>
-<BR>[Called By]<UL><LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkBlue
-<LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkRed
-<LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkGreen
-<LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkOrange
+<BR>[Called By]<UL><LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkOrange
+<LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkGreen
+<LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkRed
+<LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vLedBlinkBlue
 </UL>
 
 <P><STRONG><a name="[cc]"></a>uxTaskPriorityGet</STRONG> (Thumb, 30 bytes, Stack size 16 bytes, tasks.o(.text), UNUSED)
