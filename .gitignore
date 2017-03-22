@@ -1,1 +1,6 @@
 *.o
+*.d
+*.map
+*.hex
+*.Ty
+*.Nolan
