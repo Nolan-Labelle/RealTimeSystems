@@ -22,25 +22,19 @@ Dialog DLL:      TCM.DLL V1.21.0.0
  
 <h2>Project:</h2>
 C:\Users\Ty\Documents\RealTimeSystems\realtime-coffe.uvproj
-Project File Date:  03/20/2017
+Project File Date:  03/22/2017
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 4 (build 422)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'freertos_project'
 compiling main.c...
-Source\main.c(72): warning:  #550-D: variable "xBlueQueue"  was set but never used
-        QueueHandle_t xBlueQueue, xRedQueue, xGreenQueue, xOrangeQueue;
-Source\main.c(72): warning:  #550-D: variable "xRedQueue"  was set but never used
-        QueueHandle_t xBlueQueue, xRedQueue, xGreenQueue, xOrangeQueue;
-Source\main.c(72): warning:  #550-D: variable "xGreenQueue"  was set but never used
-        QueueHandle_t xBlueQueue, xRedQueue, xGreenQueue, xOrangeQueue;
-Source\main.c(72): warning:  #550-D: variable "xOrangeQueue"  was set but never used
-        QueueHandle_t xBlueQueue, xRedQueue, xGreenQueue, xOrangeQueue;
-Source\main.c: 4 warnings, 0 errors
+Source\main.c(35): warning:  #177-D: variable "p"  was declared but never referenced
+  static int p = 0;
+Source\main.c: 1 warning, 0 errors
 linking...
-Program Size: Code=15688 RO-data=488 RW-data=180 ZI-data=78740  
+Program Size: Code=15812 RO-data=488 RW-data=224 ZI-data=78736  
 FromELF: creating hex file...
-".\Output\freertos_project.axf" - 0 Error(s), 4 Warning(s).
+".\Output\freertos_project.axf" - 0 Error(s), 1 Warning(s).
 Build Time Elapsed:  00:00:02
 </pre>
 </body>
