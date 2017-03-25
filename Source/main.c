@@ -8,6 +8,7 @@
 #include "croutine.h"
 #include <stdlib.h>
 #include "stm32f4xx_exti.h"
+#include "main.h"
 
 #define STACK_SIZE_MIN	128	/* usStackDepth	- the stack size DEFINED IN WORDS.*/
 #define LED_OFF 0x00000000
@@ -36,10 +37,9 @@ static int* blueCmd = 0;
 static int* greenCmd = 0;
 static int* orangeCmd = 0;
 static int* redCmd = 0;
-static int* offCmd;
-static int* onCmd;
 static int brewTimes[4];
 static int* brewToggle;
+fir_8 filt;
 
 void panic() //If something has gone horribly wrong, then disco mode.
 {
@@ -166,10 +166,82 @@ void update (QueueHandle_t colorQueue, int* colorCmd, int color)
 			}
 			else
 			{
-				brewTimes[color] = (color+1) * 10; //G:5 B:10 R:15 O:20
+				brewTimes[color] = (color+1) * 5; //G:5 B:10 R:15 O:20
 			}
 		}
 	}
+}
+
+void beep()
+{
+	if (SPI_I2S_GetFlagStatus(CODEC_I2S, SPI_I2S_FLAG_TXE))
+ 	{
+ 		int counter = 4150000;
+		while(counter--) //code gotten from the sample sound program that was provided to save time upon creating the sine wave
+    {
+    	if (SPI_I2S_GetFlagStatus(CODEC_I2S, SPI_I2S_FLAG_TXE))
+    	{
+    		SPI_I2S_SendData(CODEC_I2S, sample);
+
+    		//only update on every second sample to insure that L & R ch. have the same sample value
+    		if (sampleCounter & 0x00000001)
+    		{
+    			sawWave += NOTEFREQUENCY;
+    			if (sawWave > 1.0)
+    				sawWave -= 2.0;
+
+    			filteredSaw = updateFilter(&filt, sawWave);
+    			sample = (int16_t)(NOTEAMPLITUDE*filteredSaw);
+    		}
+    		sampleCounter++;
+    	}
+
+    	else if (sampleCounter == 96000)
+    	{
+    		sampleCounter = 0;
+    	}
+		}
+  }
+}
+float updateFilter(fir_8* filt, float val)
+{
+	uint16_t valIndex;
+	uint16_t paramIndex;
+	float outval = 0.0;
+
+	valIndex = filt->currIndex;
+	filt->tabs[valIndex] = val;
+
+	for (paramIndex=0; paramIndex<8; paramIndex++)
+	{
+		outval += (filt->params[paramIndex]) * (filt->tabs[(valIndex+paramIndex)&0x07]);
+	}
+
+	valIndex++;
+	valIndex &= 0x07;
+
+	filt->currIndex = valIndex;
+
+	return outval;
+}
+
+void initFilter(fir_8* theFilter)
+{
+	uint8_t i;
+
+	theFilter->currIndex = 0;
+
+	for (i=0; i<8; i++)
+		theFilter->tabs[i] = 0.0;
+
+	theFilter->params[0] = 0.01;
+	theFilter->params[1] = 0.05;
+	theFilter->params[2] = 0.12;
+	theFilter->params[3] = 0.32;
+	theFilter->params[4] = 0.32;
+	theFilter->params[5] = 0.12;
+	theFilter->params[6] = 0.05;
+	theFilter->params[7] = 0.01;
 }
 
 void vCoffeeThread (void* pvParameters)
@@ -188,6 +260,8 @@ void vCoffeeThread (void* pvParameters)
 		update(xGreenQueue, greenCmd, LED_GREEN);
 		update(xOrangeQueue, orangeCmd, LED_ORANGE);
 		update(xRedQueue, redCmd, LED_RED);
+		
+		STM_EVAL_LEDOn(whichLED);
 		
 		if (!(brewTimes[0] <= 0 && brewTimes[1] <= 0 && brewTimes[2] <= 0 && brewTimes[3] <= 0)) //All zeros
 		{
@@ -223,13 +297,13 @@ void vCoffeeThread (void* pvParameters)
 			
 			brewTimes[currentBrew] = brewTimes[currentBrew] - 1;
 			
-			currentBrew = (currentBrew + 1) % 4;
 			vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(1000));
 			if (brewTimes[currentBrew] == 0)
 			{
+				beep();
 				STM_EVAL_LEDOff(currentBrew);
-				//Sound here
 			}
+			currentBrew = (currentBrew + 1) % 4;
 		}
 	}
 }
@@ -240,13 +314,9 @@ int main(void)
 	greenCmd =  (int*)pvPortMalloc(sizeof(int));
 	orangeCmd = (int*)pvPortMalloc(sizeof(int));
 	redCmd = 	(int*)pvPortMalloc(sizeof(int));
-	offCmd = 	(int*)pvPortMalloc(sizeof(int));
-	onCmd = 	(int*)pvPortMalloc(sizeof(int));
 	brewToggle = (int*)pvPortMalloc(sizeof(int));
-	*offCmd = 0;
-	*onCmd = 1;
 	*brewToggle = 1;
-		
+	
 	NVIC_PriorityGroupConfig( NVIC_PriorityGroup_4 ); //Enable preemption. Must happen before scheduler.
 	
 	STM_EVAL_LEDInit(LED_BLUE);
@@ -259,6 +329,12 @@ int main(void)
 	xGreenQueue 	= xQueueCreate(5, sizeof(int));
 	xOrangeQueue 	= xQueueCreate(5, sizeof(int));
 	xRedQueue 		= xQueueCreate(5, sizeof(int));
+	
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+	codec_init();
+	codec_ctrl_init();
+	I2S_Cmd(CODEC_I2S, ENABLE);
+	initFilter(&filt);
 		
 	xTaskCreate( vCoffeeThread, "CoffeeThread", 	STACK_SIZE_MIN, (void*)0, 	 1, NULL );
 	
