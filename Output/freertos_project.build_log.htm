@@ -28,11 +28,16 @@ Project File Date:  03/22/2017
 *** Using Compiler 'V5.06 update 4 (build 422)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'freertos_project'
 compiling main.c...
+Source\main.c(204): warning:  #188-D: enumerated type mixed with another type
+                        STM_EVAL_LEDOn(whichLED);
+Source\main.c(230): warning:  #188-D: enumerated type mixed with another type
+                                STM_EVAL_LEDOff(currentBrew);
+Source\main.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=16512 RO-data=488 RW-data=244 ZI-data=78740  
+Program Size: Code=15852 RO-data=488 RW-data=248 ZI-data=78752  
 FromELF: creating hex file...
-".\Output\freertos_project.axf" - 0 Error(s), 0 Warning(s).
-Build Time Elapsed:  00:00:02
+".\Output\freertos_project.axf" - 0 Error(s), 2 Warning(s).
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>
