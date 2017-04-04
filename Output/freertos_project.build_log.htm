@@ -5,7 +5,7 @@
 <h2>Tool Versions:</h2>
 IDE-Version: µVision V5.22.0.0
 Copyright (C) 2016 ARM Ltd and ARM Germany GmbH. All rights reserved.
-License Information: Nolan Labelle, University of Manitoba, LIC=----
+License Information: Tyler Gauvreau, N/A, LIC=----
  
 Tool Versions:
 Toolchain:       MDK-Lite  Version: 5.22
@@ -21,22 +21,24 @@ Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V2.0.18.0
 Dialog DLL:      TCM.DLL V1.21.0.0
  
 <h2>Project:</h2>
-C:\Users\Nolan\Desktop\RealTimeSystems\Assignment 3\RealTimeSystems\realtime-coffe.uvproj
+C:\Users\Ty\Documents\clean\RealTimeSystems\realtime-coffe.uvproj
 Project File Date:  04/03/2017
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 4 (build 422)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'freertos_project'
 compiling main.c...
-Source\main.c(63): warning:  #1035-D: single-precision operand implicitly converted to double-precision
-      			sample = (int16_t)(
+Source\main.c(48): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                        sample = (int16_t)(
 OTEAMPLITUDE*filteredSaw);
-Source\main.c: 1 warning, 0 errors
+Source\main.c(17): warning:  #177-D: variable "process"  was declared but never referenced
+  static TaskHandle_t process[4];
+Source\main.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=20868 RO-data=488 RW-data=212 ZI-data=78852  
+Program Size: Code=20860 RO-data=488 RW-data=212 ZI-data=78852  
 FromELF: creating hex file...
-".\Output\freertos_project.axf" - 0 Error(s), 1 Warning(s).
-Build Time Elapsed:  00:00:01
+".\Output\freertos_project.axf" - 0 Error(s), 2 Warning(s).
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>
