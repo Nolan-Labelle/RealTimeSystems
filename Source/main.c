@@ -14,7 +14,7 @@
 
 //Globals:
 fir_8 filt;
-static TaskHandle_t process[4];
+TaskHandle_t process[4];
 static TaskHandle_t schedHandle;
 static TimerHandle_t schedulerTimer;
 
@@ -156,18 +156,34 @@ void EXTI0_IRQHandler()
 
 void vTimerHandler (TimerHandle_t xTimer)
 {
-	panic();
-	//vTaskResume(&schedHandle);
+	vTaskPrioritySet(process[0], 1);
+	vTaskPrioritySet(process[1], 1);
+	vTaskPrioritySet(process[2], 1);
+	vTaskPrioritySet(process[3], 1);
 }
 
 void vSchedTask (void* pvParameters)
 {
-	//xTimerStart(schedulerTimer, 0);
-	//vTaskPrioritySet(&schedHandle, 1);
+	int count = 0;
 	for(;;)
 	{
 		#ifdef FPS
-			//panic();
+			switch (count%4)
+			{
+				case 0:
+					vTaskPrioritySet(process[0], 3);
+					break;
+				case 1:
+					vTaskPrioritySet(process[1], 3);
+					break;
+				case 2:
+					vTaskPrioritySet(process[2], 3);
+					break;
+				case 3:
+					vTaskPrioritySet(process[3], 3);
+					break;
+			}
+			count++;
 		#endif
 		#ifdef EDF
 			//panic();
@@ -193,13 +209,13 @@ int main(void)
 	I2S_Cmd(CODEC_I2S, ENABLE);
 	initFilter(&filt);
 		
-	xTaskCreate( vSchedTask, 		"Scheduler Task", STACK_SIZE_MIN, (void*)0, 	 1, &schedHandle);
-	//xTaskCreate( vBlueThread, 	"BlueThread", 		STACK_SIZE_MIN, (void*)0, 	 1, &process[0] );
-	//xTaskCreate( vGreenThread, 	"GreenThread", 		STACK_SIZE_MIN, (void*)0, 	 1, &process[1] );
-	//xTaskCreate( vOrangeThread, "OrangeThread", 	STACK_SIZE_MIN, (void*)0, 	 1, &process[2] );
-	//xTaskCreate( vRedThread, 		"RedThread", 			STACK_SIZE_MIN, (void*)0, 	 1, &process[3] );
+	xTaskCreate( vSchedTask, 		"Scheduler Task", STACK_SIZE_MIN, (void*)0, 	 2, &schedHandle);
+	xTaskCreate( vBlueThread, 	"BlueThread", 		STACK_SIZE_MIN, (void*)0, 	 1, &process[0] );
+	xTaskCreate( vGreenThread, 	"GreenThread", 		STACK_SIZE_MIN, (void*)0, 	 1, &process[1] );
+	xTaskCreate( vOrangeThread, "OrangeThread", 	STACK_SIZE_MIN, (void*)0, 	 1, &process[2] );
+	xTaskCreate( vRedThread, 		"RedThread", 			STACK_SIZE_MIN, (void*)0, 	 1, &process[3] );
 	
-	schedulerTimer = xTimerCreate("Scheduler timer", pdMS_TO_TICKS(1000), pdFALSE, (void*)0, vTimerHandler);
+	schedulerTimer = xTimerCreate("Scheduler timer", pdMS_TO_TICKS(1000), pdTRUE, (void*)0, vTimerHandler);
 	
 	vTaskStartScheduler();
 	panic();
