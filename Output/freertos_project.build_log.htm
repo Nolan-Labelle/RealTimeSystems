@@ -28,14 +28,22 @@ Project File Date:  04/03/2017
 *** Using Compiler 'V5.06 update 4 (build 422)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'freertos_project'
 compiling main.c...
-Source\main.c(48): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+Source\main.c(54): warning:  #1035-D: single-precision operand implicitly converted to double-precision
       			sample = (int16_t)(
 OTEAMPLITUDE*filteredSaw);
-Source\main.c: 1 warning, 0 errors
+Source\main.c(22): warning:  #177-D: variable "duration"  was declared but never referenced
+  static int duration[4];
+Source\main.c(23): warning:  #177-D: variable "deadline"  was declared but never referenced
+  static int deadline[4];
+Source\main.c(24): warning:  #177-D: variable "period"  was declared but never referenced
+  static int period[4];
+Source\main.c(25): warning:  #177-D: variable "priority"  was declared but never referenced
+  static int priority[4];
+Source\main.c: 5 warnings, 0 errors
 linking...
-Program Size: Code=21156 RO-data=488 RW-data=212 ZI-data=78852  
+Program Size: Code=21228 RO-data=488 RW-data=220 ZI-data=78916  
 FromELF: creating hex file...
-".\Output\freertos_project.axf" - 0 Error(s), 1 Warning(s).
+".\Output\freertos_project.axf" - 0 Error(s), 5 Warning(s).
 Build Time Elapsed:  00:00:01
 </pre>
 </body>

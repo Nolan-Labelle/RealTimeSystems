@@ -14,9 +14,11 @@
 
 //Globals:
 fir_8 filt;
-TaskHandle_t process[4];
+static TaskHandle_t process[4];
 static TaskHandle_t schedHandle;
 static TimerHandle_t schedulerTimer;
+static int time;
+static int brewing = 0;
 
 void panic()
 {
@@ -150,12 +152,14 @@ void EXTI0_IRQHandler()
 		//Timer was not able to start
 		panic();
 	}
-
+	brewing = !brewing;
+	time = 0;
 	EXTI_ClearITPendingBit(EXTI_Line0);
 }
 
 void vTimerHandler (TimerHandle_t xTimer)
 {
+	time++;
 	vTaskPrioritySet(process[0], 1);
 	vTaskPrioritySet(process[1], 1);
 	vTaskPrioritySet(process[2], 1);
@@ -167,30 +171,40 @@ void vSchedTask (void* pvParameters)
 	int count = 0;
 	for(;;)
 	{
-		#ifdef FPS
-			switch (count%4)
-			{
-				case 0:
-					vTaskPrioritySet(process[0], 3);
-					break;
-				case 1:
-					vTaskPrioritySet(process[1], 3);
-					break;
-				case 2:
-					vTaskPrioritySet(process[2], 3);
-					break;
-				case 3:
-					vTaskPrioritySet(process[3], 3);
-					break;
-			}
-			count++;
-		#endif
-		#ifdef EDF
-			//panic();
-		#endif
-		#ifdef LLF
-			//panic();
-		#endif
+		if(brewing)
+		{
+			#ifdef FPS
+				switch (count%4)
+				{
+					case 0:
+						vTaskPrioritySet(process[0], 3);
+						break;
+					case 1:
+						vTaskPrioritySet(process[1], 3);
+						break;
+					case 2:
+						vTaskPrioritySet(process[2], 3);
+						break;
+					case 3:
+						vTaskPrioritySet(process[3], 3);
+						break;
+				}
+				count++;
+			#endif
+			#ifdef EDF
+				//panic();
+			#endif
+			#ifdef LLF
+				//panic();
+			#endif
+		}
+		else
+		{
+			STM_EVAL_LEDOff(LED_BLUE);
+			STM_EVAL_LEDOff(LED_GREEN);
+			STM_EVAL_LEDOff(LED_ORANGE);
+			STM_EVAL_LEDOff(LED_RED);
+		}
 	}
 }
 
