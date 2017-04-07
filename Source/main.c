@@ -12,7 +12,7 @@
 
 #define STACK_SIZE_MIN	128	/* usStackDepth	- the stack size DEFINED IN WORDS.*/
 #define NUMPROCS 4
-#define FPS
+#define LLS
 
 typedef enum
 {
@@ -254,6 +254,78 @@ void fixedPriorityScheduler()
 	}
 }
 
+void earliestDeadlineScheduler()
+{
+	int i = 0;
+	int soonestDeadline = 0xFF; //Big Number
+	int timeTillDeadline;
+	proc *selectedProcess = 0;
+	
+	for(i = 0; i < NUMPROCS; i++) //Choose proc to run
+	{
+		timeTillDeadline = process[i].deadline - time%process[i].period;
+		if((process[i].runState == RUNNABLE) && (timeTillDeadline > 0) && (timeTillDeadline < soonestDeadline))
+		{
+			selectedProcess = &process[i];
+			soonestDeadline = timeTillDeadline;
+		}
+	}
+	if(selectedProcess != 0) //If we've chosen a proc to run
+	{
+		selectedProcess->hasRun += 1;
+		selectedProcess->runState = RUNNING;
+		vTaskPrioritySet(selectedProcess->handler, 3); //implicit exit of scheduler		
+		selectedProcess->runState = RUNNABLE; //Proc has finished running when control flow gets back here
+		if(selectedProcess->hasRun == selectedProcess->duration) //Block if we've brewed an entire duration's worth
+		{
+			selectedProcess->runState = BLOCKED;
+		}
+	}
+	else
+	{
+		STM_EVAL_LEDOff(LED_BLUE);
+		STM_EVAL_LEDOff(LED_GREEN);
+		STM_EVAL_LEDOff(LED_ORANGE);
+		STM_EVAL_LEDOff(LED_RED);
+	}
+}
+
+void leastLaxityScheduler()
+{
+	int i = 0;
+	int leastLaxity = 0xFF; //Big Number
+	int laxity;
+	proc *selectedProcess = 0;
+	
+	for(i = 0; i < NUMPROCS; i++) //Choose proc to run
+	{
+		laxity = process[i].deadline - (time%process[i].period + (process[i].duration - process[i].hasRun));
+		if((process[i].runState == RUNNABLE) && (laxity > 0) && (laxity < leastLaxity))
+		{
+			selectedProcess = &process[i];
+			leastLaxity = laxity;
+		}
+	}
+	if(selectedProcess != 0) //If we've chosen a proc to run
+	{
+		selectedProcess->hasRun += 1;
+		selectedProcess->runState = RUNNING;
+		vTaskPrioritySet(selectedProcess->handler, 3); //implicit exit of scheduler		
+		selectedProcess->runState = RUNNABLE; //Proc has finished running when control flow gets back here
+		if(selectedProcess->hasRun == selectedProcess->duration) //Block if we've brewed an entire duration's worth
+		{
+			selectedProcess->runState = BLOCKED;
+		}
+	}
+	else
+	{
+		STM_EVAL_LEDOff(LED_BLUE);
+		STM_EVAL_LEDOff(LED_GREEN);
+		STM_EVAL_LEDOff(LED_ORANGE);
+		STM_EVAL_LEDOff(LED_RED);
+	}
+}
+
 void vSchedTask (void* pvParameters)
 {
 	int count = 0;
@@ -266,10 +338,10 @@ void vSchedTask (void* pvParameters)
 				fixedPriorityScheduler();
 			#endif
 			#ifdef EDF
-				panic();
+				earliestDeadlineScheduler();
 			#endif
-			#ifdef LLF
-				panic();
+			#ifdef LLS
+				leastLaxityScheduler();
 			#endif
 			#ifdef SPINDEMO
 				vTaskPrioritySet(process[count%NUMPROCS].handler, 3);
