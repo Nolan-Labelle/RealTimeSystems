@@ -197,10 +197,10 @@ void EXTI0_IRQHandler()
 void vTimerHandler (TimerHandle_t xTimer)
 {
 	int i;
-	time++;
 	
 	if(brewing)
 	{
+		time++;
 		//Check if a proc's period has come up. If it has, ready the proc for running.
 		for(i = 0; i < NUMPROCS; i++)
 		{
@@ -210,12 +210,11 @@ void vTimerHandler (TimerHandle_t xTimer)
 				process[i].hasRun = 0;
 			}
 		}
-		
-		//Implicit scheduler call
-		for(i = 0; i < NUMPROCS; i++)
-		{
-			vTaskPrioritySet(process[i].handler, 1);
-		}
+	}
+	//Implicit scheduler call
+	for(i = 0; i < NUMPROCS; i++)
+	{
+		vTaskPrioritySet(process[i].handler, 1);
 	}
 }
 
@@ -300,7 +299,7 @@ void leastLaxityScheduler()
 	for(i = 0; i < NUMPROCS; i++) //Choose proc to run
 	{
 		laxity = process[i].deadline - (time%process[i].period + (process[i].duration - process[i].hasRun));
-		if((process[i].runState == RUNNABLE) && (laxity > 0) && (laxity < leastLaxity))
+		if((process[i].runState == RUNNABLE) && (laxity >= 0) && (laxity < leastLaxity))
 		{
 			selectedProcess = &process[i];
 			leastLaxity = laxity;
