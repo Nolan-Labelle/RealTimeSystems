@@ -12,7 +12,6 @@
 
 #define STACK_SIZE_MIN	128	/* usStackDepth	- the stack size DEFINED IN WORDS.*/
 #define NUMPROCS 4
-#define LLS
 
 typedef enum
 {
@@ -47,6 +46,7 @@ static TimerHandle_t schedulerTimer;
 static int time;
 static int brewing = 0; //boolean
 static proc process[NUMPROCS]; //Process table. Need locks?
+TickType_t lastBounce = 0;
 
 void panic()
 {
@@ -176,21 +176,25 @@ void EXTI0_IRQHandler()
 {
 	int i;
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	if(xTimerStartFromISR(schedulerTimer, &xHigherPriorityTaskWoken) != pdPASS)
-	{
-		//Timer was not able to start
-		panic();
-	}
-	brewing = !brewing;
-	time = 0;
 	
-	//Reset proc stats
-	for(i = 0; i < NUMPROCS; i++) 
+	if((xTaskGetTickCountFromISR() - lastBounce) > pdMS_TO_TICKS(1000))
 	{
-		process[i].runState = RUNNABLE;
-		process[i].hasRun = 0;
+		if(xTimerStartFromISR(schedulerTimer, &xHigherPriorityTaskWoken) != pdPASS)
+		{
+			//Timer was not able to start
+			panic();
+		}
+		brewing = !brewing;
+		time = 0;
+		
+		//Reset proc stats
+		for(i = 0; i < NUMPROCS; i++) 
+		{
+			process[i].runState = RUNNABLE;
+			process[i].hasRun = 0;
+		}
 	}
-	
+	lastBounce = xTaskGetTickCountFromISR();
 	EXTI_ClearITPendingBit(EXTI_Line0);
 }
 
