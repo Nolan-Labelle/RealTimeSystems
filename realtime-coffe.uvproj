@@ -372,7 +372,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER,STM32F40_41xxx, HSE_VALUE=8000000, FPS</Define>
+              <Define>USE_STDPERIPH_DRIVER,STM32F40_41xxx, HSE_VALUE=8000000, LLS</Define>
               <Undefine></Undefine>
               <IncludePath>.\Libraries\CMSIS\Include;.\Libraries\CMSIS\Device\ST\STM32F4xx\Include;.\Libraries\STM32F4xx_StdPeriph_Driver\inc;.\FreeRTOS\include;.\FreeRTOS\portable\RVDS\ARM_CM4F;.\Include</IncludePath>
             </VariousControls>

@@ -36,6 +36,7 @@ typedef struct
 	int hasRun;
 	int duration;
 	int priority;
+	int offset;
 	TaskHandle_t handler;
 } proc;
 
@@ -190,7 +191,7 @@ void EXTI0_IRQHandler()
 		//Reset proc stats
 		for(i = 0; i < NUMPROCS; i++) 
 		{
-			process[i].runState = RUNNABLE;
+			process[i].runState = BLOCKED;
 			process[i].hasRun = 0;
 		}
 	}
@@ -204,16 +205,17 @@ void vTimerHandler (TimerHandle_t xTimer)
 	
 	if(brewing)
 	{
-		time++;
+		
 		//Check if a proc's period has come up. If it has, ready the proc for running.
 		for(i = 0; i < NUMPROCS; i++)
 		{
-			if(time % process[i].period == 0)
+			if((time-process[i].offset) % process[i].period == 0)
 			{
 				process[i].runState = RUNNABLE;
 				process[i].hasRun = 0;
 			}
 		}
+		time++;
 	}
 	//Implicit scheduler call
 	for(i = 0; i < NUMPROCS; i++)
@@ -266,7 +268,7 @@ void earliestDeadlineScheduler()
 	
 	for(i = 0; i < NUMPROCS; i++) //Choose proc to run
 	{
-		timeTillDeadline = process[i].deadline - time%process[i].period;
+		timeTillDeadline = process[i].deadline - (time-process[i].offset)%process[i].period;
 		if((process[i].runState == RUNNABLE) && (timeTillDeadline > 0) && (timeTillDeadline < soonestDeadline))
 		{
 			selectedProcess = &process[i];
@@ -302,7 +304,7 @@ void leastLaxityScheduler()
 	
 	for(i = 0; i < NUMPROCS; i++) //Choose proc to run
 	{
-		laxity = process[i].deadline - (time%process[i].period + (process[i].duration - process[i].hasRun));
+		laxity = process[i].deadline - ((time-process[i].offset)%process[i].period + (process[i].duration - process[i].hasRun));
 		if((process[i].runState == RUNNABLE) && (laxity >= 0) && (laxity < leastLaxity))
 		{
 			selectedProcess = &process[i];
@@ -382,6 +384,7 @@ int main(void)
 	process[BLUE].hasRun = 0;
 	process[BLUE].priority = 3;
 	process[BLUE].duration = 3;
+	process[BLUE].offset = 0;
 	
 	process[GREEN].runState = RUNNABLE;
 	process[GREEN].deadline = 10;
@@ -389,6 +392,7 @@ int main(void)
 	process[GREEN].hasRun = 0;
 	process[GREEN].priority = 1;
 	process[GREEN].duration = 4;
+	process[GREEN].offset = 0;
 
 	process[ORANGE].runState = RUNNABLE;
 	process[ORANGE].deadline = 10;
@@ -396,6 +400,7 @@ int main(void)
 	process[ORANGE].hasRun = 0;
 	process[ORANGE].priority = 2;
 	process[ORANGE].duration = 4;
+	process[ORANGE].offset = 0;
 
 	process[RED].runState = RUNNABLE;
 	process[RED].deadline = 15;
@@ -403,6 +408,14 @@ int main(void)
 	process[RED].hasRun = 0;
 	process[RED].priority = 2;
 	process[RED].duration = 6;
+	process[RED].offset = 0;
+	
+	#ifdef OFFSET
+	process[BLUE].offset = 0;
+	process[GREEN].offset = 20;
+	process[ORANGE].offset = 2;
+	process[RED].offset = 3;
+	#endif
 	
 	xTaskCreate( vSchedTask, 	"Scheduler Task", 	STACK_SIZE_MIN, (void*)0, 	 2, &schedHandle);
 	xTaskCreate( vBlueThread, 	"BlueThread", 		STACK_SIZE_MIN, (void*)0, 	 1, &process[BLUE].handler );

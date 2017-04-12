@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Output\freertos_project.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Output\freertos_project.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060422: Last Updated: Fri Apr 07 17:18:08 2017
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060422: Last Updated: Wed Apr 12 14:48:48 2017
 <BR><P>
 <H3>Maximum Stack Usage =        232 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -671,7 +671,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.text)
 </UL>
-<P><STRONG><a name="[12]"></a>EXTI0_IRQHandler</STRONG> (Thumb, 124 bytes, Stack size 24 bytes, main.o(.text))
+<P><STRONG><a name="[12]"></a>EXTI0_IRQHandler</STRONG> (Thumb, 122 bytes, Stack size 24 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = EXTI0_IRQHandler &rArr; xTimerGenericCommand &rArr; xQueueGenericSend &rArr; prvCopyDataToQueue &rArr; xTaskPriorityDisinherit
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xTimerGenericCommand
@@ -681,24 +681,24 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f4xx.o(RESET)
 </UL>
-<P><STRONG><a name="[8c]"></a>vTimerHandler</STRONG> (Thumb, 108 bytes, Stack size 16 bytes, main.o(.text))
+<P><STRONG><a name="[8c]"></a>vTimerHandler</STRONG> (Thumb, 106 bytes, Stack size 16 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = vTimerHandler &rArr; vTaskPrioritySet &rArr; vPortExitCritical
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskPrioritySet
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.text)
 </UL>
-<P><STRONG><a name="[8e]"></a>fixedPriorityScheduler</STRONG> (Thumb, 116 bytes, Stack size 16 bytes, main.o(.text), UNUSED)
+<P><STRONG><a name="[8e]"></a>fixedPriorityScheduler</STRONG> (Thumb, 110 bytes, Stack size 16 bytes, main.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskPrioritySet
 <LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;STM_EVAL_LEDOff
 </UL>
 
-<P><STRONG><a name="[8f]"></a>earliestDeadlineScheduler</STRONG> (Thumb, 262 bytes, Stack size 24 bytes, main.o(.text), UNUSED)
+<P><STRONG><a name="[8f]"></a>earliestDeadlineScheduler</STRONG> (Thumb, 260 bytes, Stack size 24 bytes, main.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskPrioritySet
 <LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;STM_EVAL_LEDOff
 </UL>
 
-<P><STRONG><a name="[90]"></a>leastLaxityScheduler</STRONG> (Thumb, 182 bytes, Stack size 24 bytes, main.o(.text))
+<P><STRONG><a name="[90]"></a>leastLaxityScheduler</STRONG> (Thumb, 172 bytes, Stack size 24 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = leastLaxityScheduler &rArr; vTaskPrioritySet &rArr; vPortExitCritical
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskPrioritySet
@@ -715,7 +715,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.text)
 </UL>
-<P><STRONG><a name="[6f]"></a>main</STRONG> (Thumb, 368 bytes, Stack size 24 bytes, main.o(.text))
+<P><STRONG><a name="[6f]"></a>main</STRONG> (Thumb, 404 bytes, Stack size 24 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 208 + Unknown Stack Size
 <LI>Call Chain = main &rArr; vTaskStartScheduler &rArr; xTimerCreateTimerTask &rArr; xTaskGenericCreate &rArr; prvAllocateTCBAndStack &rArr; pvPortMalloc &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
